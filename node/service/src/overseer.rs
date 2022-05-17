@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see <http://www.gnu.org/licenses/>.
 
-use super::{AuthorityDiscoveryApi, Block, Error, Hash, IsCollator, Registry, SpawnNamed};
+use super::{AuthorityDiscoveryApi, Block, Error, Hash, IsCollator, Registry};
+use sp_core::traits::SpawnNamed;
+
 use lru::LruCache;
 use polkadot_availability_distribution::IncomingRequestReceivers;
 use polkadot_node_core_approval_voting::Config as ApprovalVotingConfig;
@@ -25,15 +27,15 @@ use polkadot_node_core_dispute_coordinator::Config as DisputeCoordinatorConfig;
 use polkadot_node_core_provisioner::ProvisionerConfig;
 use polkadot_node_network_protocol::request_response::{v1 as request_v1, IncomingRequestReceiver};
 use polkadot_node_subsystem_types::messages::{BitfieldSigningMessage, ProvisionerMessage};
+use polkadot_overseer::{
+	self as overseer, gen::SubsystemContext, metrics::Metrics as OverseerMetrics, BlockInfo,
+	InitializedOverseerBuilder, MetricsTrait, Overseer, OverseerConnector, OverseerHandle,
+	OverseerSubsystemContext,
+};
 #[cfg(any(feature = "malus", test))]
 pub use polkadot_overseer::{
 	dummy::{dummy_overseer_builder, DummySubsystem},
 	HeadSupportsParachains,
-};
-use polkadot_overseer::{
-	gen::SubsystemContext, metrics::Metrics as OverseerMetrics, BlockInfo,
-	InitializedOverseerBuilder, MetricsTrait, Overseer, OverseerConnector, OverseerHandle,
-	OverseerSubsystemContext,
 };
 
 use polkadot_primitives::runtime_api::ParachainHost;
@@ -73,7 +75,7 @@ pub struct OverseerGenArgs<'a, Spawner, RuntimeClient>
 where
 	RuntimeClient: 'static + ProvideRuntimeApi<Block> + HeaderBackend<Block> + AuxStore,
 	RuntimeClient::Api: ParachainHost<Block> + BabeApi<Block> + AuthorityDiscoveryApi<Block>,
-	Spawner: 'static + SpawnNamed + Clone + Unpin,
+	Spawner: 'static + overseer::gen::Spawner + Clone + Unpin,
 {
 	/// Set of initial relay chain leaves to track.
 	pub leaves: Vec<BlockInfo>,
@@ -184,7 +186,7 @@ pub fn prepared_overseer_builder<'a, Spawner, RuntimeClient>(
 where
 	RuntimeClient: 'static + ProvideRuntimeApi<Block> + HeaderBackend<Block> + AuxStore,
 	RuntimeClient::Api: ParachainHost<Block> + BabeApi<Block> + AuthorityDiscoveryApi<Block>,
-	Spawner: 'static + SpawnNamed + Clone + Unpin,
+	Spawner: 'static + overseer::gen::Spawner + Clone + Clone + Unpin,
 {
 	use polkadot_node_subsystem_util::metrics::Metrics;
 
@@ -325,7 +327,7 @@ pub trait OverseerGen {
 	where
 		RuntimeClient: 'static + ProvideRuntimeApi<Block> + HeaderBackend<Block> + AuxStore,
 		RuntimeClient::Api: ParachainHost<Block> + BabeApi<Block> + AuthorityDiscoveryApi<Block>,
-		Spawner: 'static + SpawnNamed + Clone + Unpin,
+		Spawner: 'static + overseer::gen::Spawner + Clone + Unpin,
 	{
 		let gen = RealOverseerGen;
 		RealOverseerGen::generate::<Spawner, RuntimeClient>(&gen, connector, args)
@@ -349,7 +351,7 @@ impl OverseerGen for RealOverseerGen {
 	where
 		RuntimeClient: 'static + ProvideRuntimeApi<Block> + HeaderBackend<Block> + AuxStore,
 		RuntimeClient::Api: ParachainHost<Block> + BabeApi<Block> + AuthorityDiscoveryApi<Block>,
-		Spawner: 'static + SpawnNamed + Clone + Unpin,
+		Spawner: 'static + overseer::gen::Spawner + Clone + Unpin,
 	{
 		prepared_overseer_builder(args)?
 			.build_with_connector(connector)

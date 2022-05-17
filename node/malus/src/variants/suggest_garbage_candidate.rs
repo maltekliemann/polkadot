@@ -27,7 +27,7 @@ use polkadot_cli::{
 	service::{
 		AuthorityDiscoveryApi, AuxStore, BabeApi, Block, Error, HeaderBackend, Overseer,
 		OverseerConnector, OverseerGen, OverseerGenArgs, OverseerHandle, ParachainHost,
-		ProvideRuntimeApi, SpawnNamed,
+		ProvideRuntimeApi,
 	},
 };
 use polkadot_node_core_candidate_validation::find_validation_data;
@@ -72,7 +72,7 @@ struct NoteCandidate<Spawner> {
 impl<Sender, Spawner> MessageInterceptor<Sender> for NoteCandidate<Spawner>
 where
 	Sender: overseer::CandidateBackingSenderTrait + Clone + Send + 'static,
-	Spawner: SpawnNamed + Clone + 'static,
+	Spawner: overseer::gen::Spawner + Clone + 'static,
 {
 	type Message = CandidateBackingMessage;
 
@@ -80,10 +80,10 @@ where
 	fn intercept_incoming(
 		&self,
 		subsystem_sender: &mut Sender,
-		msg: FromOverseer<Self::Message>,
-	) -> Option<FromOverseer<Self::Message>> {
+		msg: FromOrchestra<Self::Message>,
+	) -> Option<FromOrchestra<Self::Message>> {
 		match msg {
-			FromOverseer::Communication {
+			FromOrchestra::Communication {
 				msg: CandidateBackingMessage::Second(relay_parent, candidate, _pov),
 			} => {
 				gum::debug!(
@@ -204,14 +204,14 @@ where
 					.map
 					.insert(malicious_candidate_hash, candidate.hash());
 
-				let message = FromOverseer::Communication {
+				let message = FromOrchestra::Communication {
 					msg: CandidateBackingMessage::Second(relay_parent, malicious_candidate, pov),
 				};
 
 				Some(message)
 			},
-			FromOverseer::Communication { msg } => Some(FromOverseer::Communication { msg }),
-			FromOverseer::Signal(signal) => Some(FromOverseer::Signal(signal)),
+			FromOrchestra::Communication { msg } => Some(FromOrchestra::Communication { msg }),
+			FromOrchestra::Signal(signal) => Some(FromOrchestra::Signal(signal)),
 		}
 	}
 
@@ -249,7 +249,7 @@ impl OverseerGen for BackGarbageCandidateWrapper {
 	where
 		RuntimeClient: 'static + ProvideRuntimeApi<Block> + HeaderBackend<Block> + AuxStore,
 		RuntimeClient::Api: ParachainHost<Block> + BabeApi<Block> + AuthorityDiscoveryApi<Block>,
-		Spawner: 'static + SpawnNamed + Clone + Unpin,
+		Spawner: 'static + overseer::gen::Spawner + Clone + Unpin,
 	{
 		let inner = Inner { map: std::collections::HashMap::new() };
 		let inner_mut = Arc::new(Mutex::new(inner));

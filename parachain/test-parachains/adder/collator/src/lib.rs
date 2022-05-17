@@ -24,7 +24,7 @@ use polkadot_node_primitives::{
 	Statement,
 };
 use polkadot_primitives::v2::{CollatorId, CollatorPair};
-use sp_core::{traits::SpawnNamed, Pair};
+use sp_core::Pair;
 use std::{
 	collections::HashMap,
 	sync::{
@@ -150,7 +150,7 @@ impl Collator {
 	/// This collation function can be plugged into the overseer to generate collations for the adder parachain.
 	pub fn create_collation_function(
 		&self,
-		spawner: impl SpawnNamed + Clone + 'static,
+		spawner: impl overseer::gen::Spawner + Clone + 'static,
 	) -> CollatorFn {
 		use futures::FutureExt as _;
 

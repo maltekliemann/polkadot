@@ -25,7 +25,7 @@
 use polkadot_node_subsystem::{
 	errors::RuntimeApiError,
 	messages::{RuntimeApiMessage, RuntimeApiRequest as Request},
-	overseer, FromOverseer, OverseerSignal, SpawnedSubsystem, SubsystemError, SubsystemResult,
+	overseer, FromOrchestra, OverseerSignal, SpawnedSubsystem, SubsystemError, SubsystemResult,
 };
 use polkadot_primitives::{
 	runtime_api::ParachainHost,
@@ -35,7 +35,6 @@ use polkadot_primitives::{
 use sp_api::ProvideRuntimeApi;
 use sp_authority_discovery::AuthorityDiscoveryApi;
 use sp_consensus_babe::BabeApi;
-use sp_core::traits::SpawnNamed;
 
 use cache::{RequestResult, RequestResultCache};
 use futures::{channel::oneshot, prelude::*, select, stream::FuturesUnordered};
@@ -61,7 +60,7 @@ const API_REQUEST_TASK_NAME: &str = "polkadot-runtime-api-request";
 pub struct RuntimeApiSubsystem<Client> {
 	client: Arc<Client>,
 	metrics: Metrics,
-	spawn_handle: Box<dyn SpawnNamed>,
+	spawn_handle: Box<dyn overseer::gen::Spawner>,
 	/// If there are [`MAX_PARALLEL_REQUESTS`] requests being executed, we buffer them in here until they can be executed.
 	waiting_requests: VecDeque<(
 		Pin<Box<dyn Future<Output = ()> + Send>>,
@@ -78,7 +77,7 @@ impl<Client> RuntimeApiSubsystem<Client> {
 	pub fn new(
 		client: Arc<Client>,
 		metrics: Metrics,
-		spawn_handle: impl SpawnNamed + 'static,
+		spawn_handle: impl overseer::gen::Spawner + 'static,
 	) -> Self {
 		RuntimeApiSubsystem {
 			client,
@@ -343,10 +342,10 @@ where
 	loop {
 		select! {
 			req = ctx.recv().fuse() => match req? {
-				FromOverseer::Signal(OverseerSignal::Conclude) => return Ok(()),
-				FromOverseer::Signal(OverseerSignal::ActiveLeaves(_)) => {},
-				FromOverseer::Signal(OverseerSignal::BlockFinalized(..)) => {},
-				FromOverseer::Communication { msg } => match msg {
+				FromOrchestra::Signal(OverseerSignal::Conclude) => return Ok(()),
+				FromOrchestra::Signal(OverseerSignal::ActiveLeaves(_)) => {},
+				FromOrchestra::Signal(OverseerSignal::BlockFinalized(..)) => {},
+				FromOrchestra::Communication { msg } => match msg {
 					RuntimeApiMessage::Request(relay_parent, request) => {
 						subsystem.spawn_request(relay_parent, request);
 					},

@@ -15,7 +15,6 @@
 // along with Polkadot.  If not, see <http://www.gnu.org/licenses/>.
 
 use futures::prelude::*;
-use polkadot_node_primitives::SpawnNamed;
 
 pub const MALUS: &str = "MALUS";
 
@@ -30,7 +29,7 @@ where
 	U: Future<Output = ()> + Send + 'static,
 	Q: Stream<Item = X> + Send + 'static,
 	X: Send,
-	S: 'static + SpawnNamed + Clone + Unpin,
+	S: 'static + overseer::gen::Spawner + Clone + Unpin,
 {
 	let spawner2: S = spawner.clone();
 	spawner.spawn(

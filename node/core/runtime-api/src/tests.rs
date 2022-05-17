@@ -248,14 +248,14 @@ fn requests_authorities() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(relay_parent, Request::Authorities(tx)),
 			})
 			.await;
 
 		assert_eq!(rx.await.unwrap().unwrap(), runtime_api.authorities);
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -274,14 +274,14 @@ fn requests_validators() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(relay_parent, Request::Validators(tx)),
 			})
 			.await;
 
 		assert_eq!(rx.await.unwrap().unwrap(), runtime_api.validators);
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -300,14 +300,14 @@ fn requests_validator_groups() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(relay_parent, Request::ValidatorGroups(tx)),
 			})
 			.await;
 
 		assert_eq!(rx.await.unwrap().unwrap().0, runtime_api.validator_groups);
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -326,14 +326,14 @@ fn requests_availability_cores() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(relay_parent, Request::AvailabilityCores(tx)),
 			})
 			.await;
 
 		assert_eq!(rx.await.unwrap().unwrap(), runtime_api.availability_cores);
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -357,7 +357,7 @@ fn requests_persisted_validation_data() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::PersistedValidationData(para_a, OccupiedCoreAssumption::Included, tx),
@@ -369,7 +369,7 @@ fn requests_persisted_validation_data() {
 
 		let (tx, rx) = oneshot::channel();
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::PersistedValidationData(para_b, OccupiedCoreAssumption::Included, tx),
@@ -379,7 +379,7 @@ fn requests_persisted_validation_data() {
 
 		assert_eq!(rx.await.unwrap().unwrap(), None);
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -409,7 +409,7 @@ fn requests_assumed_validation_data() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::AssumedValidationData(para_a, expected_data_hash, tx),
@@ -421,7 +421,7 @@ fn requests_assumed_validation_data() {
 
 		let (tx, rx) = oneshot::channel();
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::AssumedValidationData(para_a, Hash::zero(), tx),
@@ -431,7 +431,7 @@ fn requests_assumed_validation_data() {
 
 		assert_eq!(rx.await.unwrap().unwrap(), None);
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -458,7 +458,7 @@ fn requests_check_validation_outputs() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::CheckValidationOutputs(para_a, commitments.clone(), tx),
@@ -469,7 +469,7 @@ fn requests_check_validation_outputs() {
 
 		let (tx, rx) = oneshot::channel();
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::CheckValidationOutputs(para_b, commitments, tx),
@@ -478,7 +478,7 @@ fn requests_check_validation_outputs() {
 			.await;
 		assert_eq!(rx.await.unwrap().unwrap(), runtime_api.validation_outputs_results[&para_b]);
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -497,14 +497,14 @@ fn requests_session_index_for_child() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(relay_parent, Request::SessionIndexForChild(tx)),
 			})
 			.await;
 
 		assert_eq!(rx.await.unwrap().unwrap(), runtime_api.session_index_for_child);
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -544,7 +544,7 @@ fn requests_session_info() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::SessionInfo(session_index, tx),
@@ -554,7 +554,7 @@ fn requests_session_info() {
 
 		assert_eq!(rx.await.unwrap().unwrap(), Some(dummy_session_info()));
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -580,7 +580,7 @@ fn requests_validation_code() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::ValidationCode(para_a, OccupiedCoreAssumption::Included, tx),
@@ -592,7 +592,7 @@ fn requests_validation_code() {
 
 		let (tx, rx) = oneshot::channel();
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::ValidationCode(para_b, OccupiedCoreAssumption::Included, tx),
@@ -602,7 +602,7 @@ fn requests_validation_code() {
 
 		assert_eq!(rx.await.unwrap().unwrap(), None);
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -629,7 +629,7 @@ fn requests_candidate_pending_availability() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::CandidatePendingAvailability(para_a, tx),
@@ -642,7 +642,7 @@ fn requests_candidate_pending_availability() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::CandidatePendingAvailability(para_b, tx),
@@ -652,7 +652,7 @@ fn requests_candidate_pending_availability() {
 
 		assert_eq!(rx.await.unwrap().unwrap(), None);
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -671,14 +671,14 @@ fn requests_candidate_events() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(relay_parent, Request::CandidateEvents(tx)),
 			})
 			.await;
 
 		assert_eq!(rx.await.unwrap().unwrap(), runtime_api.candidate_events);
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -710,7 +710,7 @@ fn requests_dmq_contents() {
 	let test_task = async move {
 		let (tx, rx) = oneshot::channel();
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(relay_parent, Request::DmqContents(para_a, tx)),
 			})
 			.await;
@@ -718,7 +718,7 @@ fn requests_dmq_contents() {
 
 		let (tx, rx) = oneshot::channel();
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(relay_parent, Request::DmqContents(para_b, tx)),
 			})
 			.await;
@@ -727,7 +727,7 @@ fn requests_dmq_contents() {
 			vec![InboundDownwardMessage { sent_at: 228, msg: b"Novus Ordo Seclorum".to_vec() }]
 		);
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 	futures::executor::block_on(future::join(subsystem_task, test_task));
 }
@@ -764,7 +764,7 @@ fn requests_inbound_hrmp_channels_contents() {
 	let test_task = async move {
 		let (tx, rx) = oneshot::channel();
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::InboundHrmpChannelsContents(para_a, tx),
@@ -775,7 +775,7 @@ fn requests_inbound_hrmp_channels_contents() {
 
 		let (tx, rx) = oneshot::channel();
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::InboundHrmpChannelsContents(para_b, tx),
@@ -784,7 +784,7 @@ fn requests_inbound_hrmp_channels_contents() {
 			.await;
 		assert_eq!(rx.await.unwrap().unwrap(), para_b_inbound_channels);
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 	futures::executor::block_on(future::join(subsystem_task, test_task));
 }
@@ -815,7 +815,7 @@ fn requests_validation_code_by_hash() {
 		for code in validation_code {
 			let (tx, rx) = oneshot::channel();
 			ctx_handle
-				.send(FromOverseer::Communication {
+				.send(FromOrchestra::Communication {
 					msg: RuntimeApiMessage::Request(
 						relay_parent,
 						Request::ValidationCodeByHash(code.hash(), tx),
@@ -826,7 +826,7 @@ fn requests_validation_code_by_hash() {
 			assert_eq!(rx.await.unwrap().unwrap(), Some(code));
 		}
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -852,7 +852,7 @@ fn multiple_requests_in_parallel_are_working() {
 			let (tx, rx) = oneshot::channel();
 
 			ctx_handle
-				.send(FromOverseer::Communication {
+				.send(FromOrchestra::Communication {
 					msg: RuntimeApiMessage::Request(relay_parent, Request::AvailabilityCores(tx)),
 				})
 				.await;
@@ -868,7 +868,7 @@ fn multiple_requests_in_parallel_are_working() {
 			.into_iter()
 			.for_each(|r| assert_eq!(r.unwrap().unwrap(), runtime_api.availability_cores));
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -897,13 +897,13 @@ fn requests_babe_epoch() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(relay_parent, Request::CurrentBabeEpoch(tx)),
 			})
 			.await;
 
 		assert_eq!(rx.await.unwrap().unwrap(), epoch);
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -927,7 +927,7 @@ fn requests_submit_pvf_check_statement() {
 		// Here we just want to ensure that those requests do not go through the cache.
 		let (tx, rx) = oneshot::channel();
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::SubmitPvfCheckStatement(stmt.clone(), sig.clone(), tx),
@@ -937,7 +937,7 @@ fn requests_submit_pvf_check_statement() {
 		assert_eq!(rx.await.unwrap().unwrap(), ());
 		let (tx, rx) = oneshot::channel();
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::SubmitPvfCheckStatement(stmt.clone(), sig.clone(), tx),
@@ -951,7 +951,7 @@ fn requests_submit_pvf_check_statement() {
 			&[(stmt.clone(), sig.clone()), (stmt.clone(), sig.clone())]
 		);
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -987,13 +987,13 @@ fn requests_pvfs_require_precheck() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(relay_parent, Request::PvfsRequirePrecheck(tx)),
 			})
 			.await;
 
 		assert_eq!(rx.await.unwrap().unwrap(), vec![[1; 32].into(), [2; 32].into()]);
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));
@@ -1019,7 +1019,7 @@ fn requests_validation_code_hash() {
 		let (tx, rx) = oneshot::channel();
 
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::ValidationCodeHash(para_a, OccupiedCoreAssumption::Included, tx),
@@ -1031,7 +1031,7 @@ fn requests_validation_code_hash() {
 
 		let (tx, rx) = oneshot::channel();
 		ctx_handle
-			.send(FromOverseer::Communication {
+			.send(FromOrchestra::Communication {
 				msg: RuntimeApiMessage::Request(
 					relay_parent,
 					Request::ValidationCodeHash(para_b, OccupiedCoreAssumption::Included, tx),
@@ -1041,7 +1041,7 @@ fn requests_validation_code_hash() {
 
 		assert_eq!(rx.await.unwrap().unwrap(), None);
 
-		ctx_handle.send(FromOverseer::Signal(OverseerSignal::Conclude)).await;
+		ctx_handle.send(FromOrchestra::Signal(OverseerSignal::Conclude)).await;
 	};
 
 	futures::executor::block_on(future::join(subsystem_task, test_task));

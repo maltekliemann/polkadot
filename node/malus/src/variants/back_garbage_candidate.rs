@@ -23,7 +23,7 @@ use polkadot_cli::{
 	service::{
 		AuthorityDiscoveryApi, AuxStore, BabeApi, Block, Error, HeaderBackend, Overseer,
 		OverseerConnector, OverseerGen, OverseerGenArgs, OverseerHandle, ParachainHost,
-		ProvideRuntimeApi, SpawnNamed,
+		ProvideRuntimeApi,
 	},
 };
 
@@ -47,7 +47,7 @@ impl OverseerGen for BackGarbageCandidate {
 	where
 		RuntimeClient: 'static + ProvideRuntimeApi<Block> + HeaderBackend<Block> + AuxStore,
 		RuntimeClient::Api: ParachainHost<Block> + BabeApi<Block> + AuthorityDiscoveryApi<Block>,
-		Spawner: 'static + SpawnNamed + Clone + Unpin,
+		Spawner: 'static + overseer::gen::Spawner + Clone + Unpin,
 	{
 		let spawner = args.spawner.clone();
 		let validation_filter = ReplaceValidationResult::new(

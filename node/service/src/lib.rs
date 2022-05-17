@@ -47,14 +47,14 @@ use {
 		self as chain_selection_subsystem, Config as ChainSelectionConfig,
 	},
 	polkadot_node_core_dispute_coordinator::Config as DisputeCoordinatorConfig,
-	polkadot_overseer::BlockInfo,
+	polkadot_overseer::{BlockInfo, SpawnGlue},
 	sc_client_api::{BlockBackend, ExecutorProvider},
+	sp_core::traits::SpawnNamed,
 	sp_trie::PrefixedMemoryDB,
 };
 
 use polkadot_node_subsystem_util::database::Database;
 
-pub use sp_core::traits::SpawnNamed;
 #[cfg(feature = "full-node")]
 pub use {
 	polkadot_overseer::{Handle, Overseer, OverseerConnector, OverseerHandle},
@@ -1020,7 +1020,7 @@ where
 
 	let overseer_handle = if let Some((authority_discovery_service, keystore)) = maybe_params {
 		let (overseer, overseer_handle) = overseer_gen
-			.generate::<service::SpawnTaskHandle, FullClient<RuntimeApi, ExecutorDispatch>>(
+			.generate::<SpawnGlue<service::SpawnTaskHandle>, FullClient<RuntimeApi, ExecutorDispatch>>(
 				overseer_connector,
 				OverseerGenArgs {
 					leaves: active_leaves,
@@ -1036,7 +1036,7 @@ where
 					statement_req_receiver,
 					dispute_req_receiver,
 					registry: prometheus_registry.as_ref(),
-					spawner,
+					spawner: SpawnGlue(spawner),
 					is_collator,
 					approval_voting_config,
 					availability_config,
